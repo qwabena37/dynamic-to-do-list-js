@@ -1,43 +1,66 @@
-document.addEventListener("DOMContentLoaded", function () {
-  const form = document.getElementById("registration-form");
-  const feedbackDiv = document.getElementById("form-feedback");
+document.addEventListener('DOMContentLoaded', () => {
+  const addButton = document.getElementById('add-task-btn');
+  const taskInput = document.getElementById('task-input');
+  const taskList = document.getElementById('task-list');
 
-  form.addEventListener("submit", function (event) {
-    event.preventDefault();
+  // Load tasks from localStorage
+  loadTasks();
 
-    const username = document.getElementById("username").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
+  // Add task on button click
+  addButton.addEventListener('click', () => {
+    const taskText = taskInput.value.trim();
+    addTask(taskText);
+  });
 
-    let isValid = true;
-    let messages = [];
-
-    // Username validation
-    if (username.length < 3) {
-      isValid = false;
-      messages.push("Username must be at least 3 characters long.");
-    }
-
-    // Email validation
-    if (!email.includes("@") || !email.includes(".")) {
-      isValid = false;
-      messages.push("Email must contain '@' and '.' characters.");
-    }
-
-    // Password validation
-    if (password.length < 8) {
-      isValid = false;
-      messages.push("Password must be at least 8 characters long.");
-    }
-
-    feedbackDiv.style.display = "block";
-
-    if (isValid) {
-      feedbackDiv.textContent = "Registration successful!";
-      feedbackDiv.style.color = "#28a745";
-    } else {
-      feedbackDiv.innerHTML = messages.join("<br>");
-      feedbackDiv.style.color = "#dc3545";
+  // Add task on Enter key press
+  taskInput.addEventListener('keypress', (event) => {
+    if (event.key === 'Enter') {
+      const taskText = taskInput.value.trim();
+      addTask(taskText);
     }
   });
+
+  // Add task to DOM and localStorage
+  function addTask(taskText, save = true) {
+    if (taskText === '') {
+      alert('Please enter a task.');
+      return;
+    }
+
+    const li = document.createElement('li');
+    li.textContent = taskText;
+
+    const removeBtn = document.createElement('button');
+    removeBtn.textContent = 'Remove';
+    removeBtn.classList.add('remove-btn');
+
+    removeBtn.onclick = () => {
+      taskList.removeChild(li);
+      removeFromStorage(taskText);
+    };
+
+    li.appendChild(removeBtn);
+    taskList.appendChild(li);
+
+    taskInput.value = ''; // Clear input field
+
+    if (save) {
+      const storedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+      storedTasks.push(taskText);
+      localStorage.setItem('tasks', JSON.stringify(storedTasks));
+    }
+  }
+
+  // Load tasks from localStorage
+  function loadTasks() {
+    const storedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+    storedTasks.forEach(taskText => addTask(taskText, false));
+  }
+
+  // Remove task from localStorage
+  function removeFromStorage(taskText) {
+    let storedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+    storedTasks = storedTasks.filter(task => task !== taskText);
+    localStorage.setItem('tasks', JSON.stringify(storedTasks));
+  }
 });
